@@ -119,11 +119,6 @@ pattern=$3
 # Clone the repo and enter it
 git clone --no-hardlinks "$repo" "$dir" && cd "$dir" &&
 
-# Remove remotes (a clone is meant to be a different repository)
-while read -r remote; do
-	git remote rm "$remote" || break
-done < <(git remote) &&
-
 # The heart of the script
 git filter-branch --prune-empty --tree-filter \
 "bash -O dotglob -O extglob -c "\
@@ -141,6 +136,11 @@ while read -r root; do
 	git filter-branch --force --parent-filter "sed 's/-p $root//'" -- --all
 
 done < <(git rev-list --max-parents=0 HEAD) &&
+
+# Remove remotes (a clone is meant to be a different repository)
+while read -r remote; do
+	git remote rm "$remote" || break
+done < <(git remote) &&
 
 # Deletes backups and reflogs, not needed in a clone
 if [[ -e .git/refs/original/ ]] ; then
